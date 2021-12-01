@@ -5,10 +5,10 @@ choise = InlineKeyboardMarkup(
     inline_keyboard = [
         [
             InlineKeyboardButton(text = 'Добавить новую заявку', callback_data=buy_callback.new(
-                item_name="apple", quantity=1
+                item_name="addApplication",
             )),
             InlineKeyboardButton(text = 'Посмотреть мои заявки', callback_data=buy_callback.new(
-                item_name="pear", quantity=1
+                item_name="myApplication",
             ))
         ],
         [
