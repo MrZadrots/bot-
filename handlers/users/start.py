@@ -1,4 +1,5 @@
 from aiogram import types
+import logging
 from aiogram.dispatcher.filters.builtin import Command, CommandStart
 from aiogram.types import message, user
 from aiogram.types import CallbackQuery
@@ -7,16 +8,15 @@ from loader import dp, db
 from data.config import ADMINS
 from keyboards.inline.choise_buttons import choise
 from keyboards.inline.choise_buttons_admin import choise_admin
-import logging
 from keyboards.inline.callback_data import buy_callback
 from asyncpg import Connection, Record
 from asyncpg.exceptions import UniqueViolationError
-
+#from utils.db_api.DBCommands import DBCommands
 
 class DBCommands: 
     pool: Connection=db
     ADD_NEW_APPLICATION = "INSERT INTO applications (chat_id,username,full_name,application_image,application_description,application_status) Values ($1,$2,$3,$4,$5,0) RETURNING id"
-    GET_MY_APPLICATION = "SELECT (chat_id,application_image,application_description,application_status) FROM applications WHERE chat_id = $1"
+    GET_MY_APPLICATION = "SELECT (chat_id,application_image,application_description) FROM applications WHERE chat_id = $1"
 
     async def add_new_application(self,data):
         user = types.User.get_current()
@@ -37,7 +37,7 @@ class DBCommands:
         args = (user_id)
         command = self.GET_MY_APPLICATION
         try:
-            record = await self.pool.fetchval(command,args)
+            record = await self.pool.fetch(command,args)
             logging.info(f"record from bd= {record}")
             return record
         except UniqueViolationError:
@@ -82,10 +82,17 @@ async def addApplication(call: CallbackQuery,callback_data: dict):
     logging.info(f"user_id= {user_id}")
     
     record = await database.get_my_application(user_id)
+    delete_str = '<Record row=('
     logging.info(f"record from bot= {record}")
-    await call.message.answer("Ваши заявки")
-    await call.message.answer(record)
-
+    answer = "Ваши заявки: \n"
+    for i in record:
+        string = str(i) 
+        string = string.replace(delete_str,'')
+        string = string.replace(')>','')
+        logging.info(str(string))
+        answer += string + "\n"
+    await call.message.answer(answer)
+    
     
 @dp.callback_query_handler(text= 'cancel')
 async def cancel(call:CallbackQuery):
