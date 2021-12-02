@@ -6,7 +6,7 @@ from aiogram.types.message import Message
 
 from loader import dp
 
-
+'''
 # Эхо хендлер, куда летят текстовые сообщения без указанного состояния
 @dp.message_handler(state=None)
 async def bot_echo(message: types.Message):
@@ -22,7 +22,10 @@ async def bot_echo_all(message: types.Message, state: FSMContext):
     await message.answer(f"Эхо в состоянии <code>{state}</code>.\n"
                          f"\nСодержание сообщения:\n"
                          f"<code>{message}</code>")
+'''
 
-@dp.message_handler(Command("add"))
-async def show_items(message: Message):
-    await message.answer(text="2 яблока 1 груша",reply_markup=choise)
+@dp.message_handler()
+async def empty(message: types.Message):
+    await message.answer("Нет такой команды")
+    await message.delete()
+    
