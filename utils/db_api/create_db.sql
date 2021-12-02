@@ -1,8 +1,7 @@
-create table applications
+create table if not exists applications
 (
     chat_id   bigint            not null,
     username  text,
-    full_name text,
     application_image text,
     application_description text,
     application_status integer default 0 not null,
@@ -12,5 +11,5 @@ create table applications
 alter table applications
     owner to postgres;
 
-create unique index applications_id_uindex
+create unique index if not exists applications_id_uindex
     on applications (id);

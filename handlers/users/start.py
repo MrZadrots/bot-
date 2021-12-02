@@ -27,7 +27,7 @@ class FSMAdder(StatesGroup):
 
 class DBCommands: 
     pool: Connection=db
-    ADD_NEW_APPLICATION = "INSERT INTO applications (chat_id,username,full_name,application_image,application_description,application_status) Values ($1,$2,$3,$4,$5,0) RETURNING id"
+    ADD_NEW_APPLICATION = "INSERT INTO applications (chat_id,username,application_image,application_description,application_status) Values ($1,$2,$3,$4,0) RETURNING id"
     GET_MY_APPLICATION = "SELECT (chat_id,application_image,application_description,application_status) FROM applications WHERE chat_id = $1"
 
     async def add_new_application(self,state):
@@ -35,11 +35,10 @@ class DBCommands:
         async with state.proxy() as data: 
             chat_id = int(data['chat_id'])
             username = data['username']
-            full_name = data ['full_name']
             application_image = data['photo']
             application_description = data['description']
         command = self.ADD_NEW_APPLICATION
-        args = [chat_id,username,full_name,application_image,application_description]
+        args = [chat_id,username,application_image,application_description]
         logging.info(f"args: {args}")
         try:
             record_id = await self.pool.fetchval(command,*args)
@@ -80,8 +79,6 @@ async def bot_start(message: types.Message):
                             #reply_markup=choise_admin)
         await message.answer(text="Я скажу, когда добавять заявку")
     else:
-        #await message.answer(text=f"Привет, {message.from_user.full_name}! Вот, что ты можешь сделать",
-                            #reply_markup=choise)
         await message.answer(text="Вот, что ты можешь сделать",
                             reply_markup=choise)
 
@@ -112,11 +109,11 @@ async def load_photo(message:types.Message, state=FSMContext):
 
 @dp.message_handler(state=FSMAdder.description)
 async def load_desc(message = types.Message, state = FSMAdder.description):
+    logging.info(message.from_user)
     async with state.proxy() as data:
         data['description'] = message.text
         data['username'] = message.from_user.first_name
         data['chat_id'] = message.from_user.id
-        data['full_name'] = message.from_user.first_name + message.from_user.last_name
         logging.info(f'Data: {data}')
         logging.info(f'Message {message.from_user}')
     answerBD = await database.add_new_application(state)
