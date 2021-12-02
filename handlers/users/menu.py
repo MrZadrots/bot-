@@ -1,7 +1,6 @@
 from aiogram import types
 import logging
 from aiogram.dispatcher.filters.builtin import Command, CommandStart
-from aiogram.types import message, user
 from aiogram.types import CallbackQuery
 from loader import dp, db, bot
 from data.config import ADMINS
@@ -10,7 +9,7 @@ from keyboards.inline.choise_buttons_admin import choise_admin
 from keyboards.inline.callback_data import buy_callback
 from asyncpg import Connection, Record
 from asyncpg.exceptions import UniqueViolationError
-#from utils.db_api.DBCommands import DBCommands
+
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -59,12 +58,6 @@ class DBCommands:
 
 database = DBCommands()
 
-@dp.message_handler(CommandStart())
-async def bot_menu(message: types.Message):
-    await message.answer(text=f"Привет, {message.from_user.full_name}! Что начать пользоваться ботом введи /menu или нажми кнопку",
-                            reply_markup=kb_client)
-
-
 
 @dp.message_handler(commands='menu')
 async def bot_start(message: types.Message):
@@ -76,9 +69,8 @@ async def bot_start(message: types.Message):
         if admin == str(user_id):
             is_admin = True
     if is_admin:
-        #await message.answer(text="Вот, что ты можешь сделать",
-                            #reply_markup=choise_admin)
-        await message.answer(text="Я скажу, когда добавять заявку")
+        await message.answer(text="Вот, что ты можешь сделать",
+                            reply_markup=choise_admin)
     else:
         #await message.answer(text=f"Привет, {message.from_user.full_name}! Вот, что ты можешь сделать",
                             #reply_markup=choise)
@@ -101,7 +93,6 @@ async def cancel_add_hanbler(message: types.Message,state=FSMContext):
         return
     await state.finish()
     await message.reply('ОК')
-    await bot.send_message(message.from_user.id,'Вот, что ты можешь сделать', reply_markup=choise)
 
 @dp.message_handler(content_types=['photo'],state=FSMAdder.photo)
 async def load_photo(message:types.Message, state=FSMContext):
@@ -125,9 +116,11 @@ async def load_desc(message = types.Message, state = FSMAdder.description):
         #Оповещение админу 
         await alert_for_admin(dp)
         await message.reply("Ваша заявка добалена.")
-        await bot.send_message(message.from_user.id,'Вот, что ты можешь сделать', reply_markup=choise)
     else:
         await message.reply("Ошибка! Попробуйте еще раз :)")
+    
+
+
 
 @dp.callback_query_handler(buy_callback.filter(item_name = 'myApplication'))
 async def myApplication(call: CallbackQuery,callback_data: dict):
@@ -148,26 +141,7 @@ async def myApplication(call: CallbackQuery,callback_data: dict):
         array_message = create_array_for_print(string)
         answer += string + "\n"
         await bot.send_photo(user_id, str(array_message[1]), f'Описание:\n{array_message[2]}\n Статус:\n{array_message[3]}')
-    await bot.send_message(user_id,'Вот, что ты можешь сделать', reply_markup=choise)
 
-@dp.message_handler(commands= 'view')
-async def myApplication(message: types.Message):
-    user_id = message.from_user.id
-    logging.info(f"user_id= {user_id}")
-    
-    record = await database.get_my_application(user_id)
-    delete_str = '<Record row=('
-    logging.info(f"record from bot= {record}")
-    answer = "Ваши заявки: \n"
-    for i in record:
-        string = str(i) 
-        string = string.replace(delete_str,'')
-        string = string.replace(')>','')
-        logging.info(string)
-        array_message = create_array_for_print(string)
-        answer += string + "\n"
-        await bot.send_photo(user_id, str(array_message[1]), f'Описание:\n{array_message[2]}\n Статус:\n{array_message[3]}')
-    
 @dp.callback_query_handler(text= 'cancel')
 async def cancel(call:CallbackQuery):
     await call.answer("Что открыть меню введите /menu", show_alert=False)

@@ -1,8 +1,8 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 
 
-b1 = KeyboardButton("Добавить новую заявку")
-b2 = KeyboardButton("Посмотреть мои заявки")
+b1 = KeyboardButton("/menu")
+b2 = KeyboardButton("/add")
 
-kb_client = ReplyKeyboardMarkup()
-kb_client.add(b1).add(b2)
+kb_client = ReplyKeyboardMarkup(resize_keyboard=True)
+kb_client.add(b1)
