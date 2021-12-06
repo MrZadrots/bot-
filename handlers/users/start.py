@@ -1,7 +1,7 @@
 from aiogram import types
 import logging
 from aiogram.dispatcher.filters.builtin import Command, CommandStart
-from aiogram.types import message, user
+from aiogram.types import message, reply_keyboard, user
 from aiogram.types import CallbackQuery
 from loader import dp, db, bot
 from data.config import ADMINS
@@ -19,10 +19,7 @@ from utils.notify_admins import alert_for_admin
 from utils.func import create_array_for_print
 
 from keyboards.default.client_kb  import kb_client
-
-class FSMAdder(StatesGroup):
-    photo = State()
-    description = State()
+from states.stateBot import FSMAdder
 
 
 class DBCommands: 
@@ -128,23 +125,23 @@ async def load_desc(message = types.Message, state = FSMAdder.description):
 
 @dp.callback_query_handler(buy_callback.filter(item_name = 'myApplication'))
 async def myApplication(call: CallbackQuery,callback_data: dict):
-    await call.answer(cache_time=60)
-    callbackData = call.data
     user_id = call.from_user.id
-    logging.info(f"user_id= {user_id}")
-    
+    logging.info(f"User_INFO: {call.from_user}")
     record = await database.get_my_application(user_id)
     delete_str = '<Record row=('
     logging.info(f"record from bot= {record}")
-    answer = "Ваши заявки: \n"
+    if record is None:
+        await bot.send_message(user_id,'Что-то пошло ни так. Попробуйте снова :)',reply_markup=choise)
+    if len(record) == 0 :
+        await bot.send_message(user_id,'У вас пока нет заявок',reply_markup=choise)
+        return
     for i in record:
         string = str(i) 
         string = string.replace(delete_str,'')
         string = string.replace(')>','')
         logging.info(string)
         array_message = create_array_for_print(string)
-        answer += string + "\n"
-        await bot.send_photo(user_id, str(array_message[1]), f'Описание:\n{array_message[2]}\n Статус:\n{array_message[3]}')
+        await bot.send_photo(user_id, str(array_message[1]), f'Описание:\n{array_message[2]}\n\nСтатус:\n{array_message[3]}')
     await bot.send_message(user_id,'Вот, что ты можешь сделать', reply_markup=choise)
 
 @dp.message_handler(commands= 'view')
@@ -167,6 +164,6 @@ async def myApplication(message: types.Message):
     
 @dp.callback_query_handler(text= 'cancel')
 async def cancel(call:CallbackQuery):
-    await call.answer("Что открыть меню введите /menu", show_alert=False)
+    await call.answer("Чтобы открыть меню введите /menu", show_alert=False)
     await call.message.delete()
     await call.message.edit_reply_markup(reply_markup=None)
