@@ -1,4 +1,9 @@
 
+from aiogram.types.message import Message
+import asyncio
+from aiogram import Bot
+
+
 def check_status(string):
     if string == '0':
         return 'В рассмотрении'
@@ -24,6 +29,25 @@ def create_array_for_print(string):
     result.append(desc)
     result.append(status)
     return result
+
+
+def find_flor(name):
+    if name == '1 корпус':
+        result = 'first_flor'
+    if name == '2 корпус':
+        result = 'second_flor'
+    if name == '3 корпус':
+        result = 'third _flor'
+    
+    return result
+
+async def getPhotoFromTg(message: Message,bot:Bot):
+    file_info = await bot.get_file(message.photo[0].file_id)
+    downloaded_file = await bot.download_file(file_info.file_path)
+    src = '../src' + message.photo[1].file_id
+    with open(src, 'wb') as new_file:
+        new_file.write(downloaded_file)
+
 
 if __name__ == '__main__':
     res = create_array_for_print("954825282, 'AgACAgIAAxkBAAIBmWGow3LCe0twlTlWM3pIG3xYe_ncAAIVujEbmGFJSdlnjgQiYU0jAQADAgADcwADIgQ', 'adada', 0")

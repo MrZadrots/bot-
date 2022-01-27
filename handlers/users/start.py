@@ -8,6 +8,8 @@ from data.config import ADMINS
 from keyboards.inline.choise_buttons import choise
 from keyboards.inline.choise_buttons_admin import choise_admin
 from keyboards.inline.callback_data import buy_callback
+from keyboards.inline.callback_data_campus import campus_callback
+from utils.func import find_flor
 from asyncpg import Connection, Record
 from asyncpg.exceptions import UniqueViolationError
 #from utils.db_api.DBCommands import DBCommands
@@ -17,9 +19,11 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram import types
 from utils.notify_admins import alert_for_admin
 from utils.func import create_array_for_print
-
+from keyboards.inline.campus_keyboard import campus_keyboard
 from keyboards.default.client_kb  import kb_client
 from states.stateBot import FSMAdder
+
+from keyboards.inline.flor_keyboard import first_flor,second_flor,third_flor
 
 
 class DBCommands: 
@@ -101,8 +105,37 @@ async def cancel_add_hanbler(message: types.Message,state=FSMContext):
 async def load_photo(message:types.Message, state=FSMContext):
     async with state.proxy() as data:
         data['photo'] = message.photo[0].file_id
+    file_info = await bot.get_file(message.photo[-1].file_id)
+    await message.photo[-1].download(file_info.file_path)
     await FSMAdder.next()
-    await message.reply("Теперь введите место")
+    await message.answer(text="Теперь выберите место",reply_markup=campus_keyboard)
+
+@dp.callback_query_handler(campus_callback.filter(item_name = 'campus'),state = FSMAdder.place)
+async def load_place(call: CallbackQuery, callback_data: dict,state = FSMAdder.place):
+    print("CallBack", call)
+    async with state.proxy() as data:
+        data['place']= callback_data['item_value']
+    await FSMAdder.next()
+
+    campus = callback_data['item_value']
+
+    if campus == '1 корпус':
+        print(campus)
+        await bot.send_message(call.from_user.id,'Выбери этаж', reply_markup=first_flor)
+    if campus == '2 корпус':
+        print(campus)
+        await bot.send_message(call.from_user.id,'Выбери этаж', reply_markup=second_flor)        
+    if campus == '3 корпус':
+        print(campus)
+        await bot.send_message(call.from_user.id,'Выбери этаж', reply_markup=third_flor)  
+
+@dp.callback_query_handler(campus_callback.filter(item_name = 'flor'),state = FSMAdder.flor)
+async def load_flor(call: CallbackQuery, callback_data: dict,state = FSMAdder.flor):
+    async with state.proxy() as data:
+        data['flor']= callback_data['item_value']
+    await FSMAdder.next()
+    await bot.send_message(call.from_user.id,'Добавь описание', reply_markup=None)  
+
 
 @dp.message_handler(state=FSMAdder.description)
 async def load_desc(message = types.Message, state = FSMAdder.description):
@@ -115,6 +148,7 @@ async def load_desc(message = types.Message, state = FSMAdder.description):
         logging.info(f'Message {message.from_user}')
     answerBD = await database.add_new_application(state)
     await state.finish()
+
     if answerBD:
         #Оповещение админу 
         await alert_for_admin(dp)
@@ -122,6 +156,7 @@ async def load_desc(message = types.Message, state = FSMAdder.description):
         await bot.send_message(message.from_user.id,'Вот, что ты можешь сделать', reply_markup=choise)
     else:
         await message.reply("Ошибка! Попробуйте еще раз :)")
+
 
 @dp.callback_query_handler(buy_callback.filter(item_name = 'myApplication'))
 async def myApplication(call: CallbackQuery,callback_data: dict):
