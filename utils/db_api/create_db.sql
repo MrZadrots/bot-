@@ -5,6 +5,7 @@ create table if not exists applications
     application_image text,
     application_description text,
     application_status integer default 0 not null,
+    application_place text,
     id        serial            not null             primary key
 );
 

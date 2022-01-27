@@ -28,8 +28,8 @@ from keyboards.inline.flor_keyboard import first_flor,second_flor,third_flor
 
 class DBCommands: 
     pool: Connection=db
-    ADD_NEW_APPLICATION = "INSERT INTO applications (chat_id,username,application_image,application_description,application_status) Values ($1,$2,$3,$4,0) RETURNING id"
-    GET_MY_APPLICATION = "SELECT (chat_id,application_image,application_description,application_status) FROM applications WHERE chat_id = $1"
+    ADD_NEW_APPLICATION = "INSERT INTO applications (chat_id,username,application_image,application_description,application_status,application_place) Values ($1,$2,$3,$4,0,$5) RETURNING id"
+    GET_MY_APPLICATION = "SELECT (chat_id,application_image,application_description,application_status,application_place) FROM applications WHERE chat_id = $1"
 
     async def add_new_application(self,state):
         args = []
@@ -38,8 +38,9 @@ class DBCommands:
             username = data['username']
             application_image = data['photo']
             application_description = data['description']
+            application_place = data['place'] + " " + data['flor']
         command = self.ADD_NEW_APPLICATION
-        args = [chat_id,username,application_image,application_description]
+        args = [chat_id,username,application_image,application_description, application_place]
         logging.info(f"args: {args}")
         try:
             record_id = await self.pool.fetchval(command,*args)
@@ -176,7 +177,7 @@ async def myApplication(call: CallbackQuery,callback_data: dict):
         string = string.replace(')>','')
         logging.info(string)
         array_message = create_array_for_print(string)
-        await bot.send_photo(user_id, str(array_message[1]), f'Описание:\n{array_message[2]}\n\nСтатус:\n{array_message[3]}')
+        await bot.send_photo(user_id, str(array_message[1]), f'Место:\n{array_message[4]}\n Описание:\n{array_message[2]}\n Статус:\n{array_message[3]}')
     await bot.send_message(user_id,'Вот, что ты можешь сделать', reply_markup=choise)
 
 @dp.message_handler(commands= 'view')
@@ -195,7 +196,7 @@ async def myApplication(message: types.Message):
         logging.info(string)
         array_message = create_array_for_print(string)
         answer += string + "\n"
-        await bot.send_photo(user_id, str(array_message[1]), f'Описание:\n{array_message[2]}\n Статус:\n{array_message[3]}')
+        await bot.send_photo(user_id, str(array_message[1]),  f'Место:\n{array_message[4]}\n Описание:\n{array_message[2]}\n Статус:\n{array_message[3]}')
     
 @dp.callback_query_handler(text= 'cancel')
 async def cancel(call:CallbackQuery):
