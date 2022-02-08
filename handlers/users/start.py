@@ -23,7 +23,7 @@ from keyboards.inline.campus_keyboard import campus_keyboard
 from keyboards.default.client_kb  import kb_client
 from states.stateBot import FSMAdder
 
-from keyboards.inline.flor_keyboard import first_flor,second_flor,third_flor
+from keyboards.inline.flor_keyboard import first_flor,second_flor,third_flor,fourth_flor,fifth_flor,sixth_flor,seventh_flor,eighth_flor
 
 
 class DBCommands: 
@@ -129,6 +129,22 @@ async def load_place(call: CallbackQuery, callback_data: dict,state = FSMAdder.p
     if campus == '3 корпус':
         print(campus)
         await bot.send_message(call.from_user.id,'Выбери этаж', reply_markup=third_flor)  
+    if campus == '4 корпус':
+        print(campus)
+        await bot.send_message(call.from_user.id,'Выбери этаж', reply_markup=fourth_flor)  
+    if campus == '5 корпус':
+        print(campus)
+        await bot.send_message(call.from_user.id,'Выбери этаж', reply_markup=fifth_flor)  
+    if campus == '6 корпус':
+        print(campus)
+        await bot.send_message(call.from_user.id,'Выбери этаж', reply_markup=sixth_flor)  
+    if campus == '7 корпус':
+        print(campus)
+        await bot.send_message(call.from_user.id,'Выбери этаж', reply_markup=seventh_flor)  
+    if campus == '8 корпус':
+        print(campus)
+        await bot.send_message(call.from_user.id,'Выбери этаж', reply_markup=eighth_flor)  
+    
 
 @dp.callback_query_handler(campus_callback.filter(item_name = 'flor'),state = FSMAdder.flor)
 async def load_flor(call: CallbackQuery, callback_data: dict,state = FSMAdder.flor):
@@ -153,7 +169,7 @@ async def load_desc(message = types.Message, state = FSMAdder.description):
     if answerBD:
         #Оповещение админу 
         await alert_for_admin(dp)
-        await message.reply("Ваша заявка добалена.")
+        await message.reply("Ваша заявка добавлена.")
         await bot.send_message(message.from_user.id,'Вот, что ты можешь сделать', reply_markup=choise)
     else:
         await message.reply("Ошибка! Попробуйте еще раз :)")
